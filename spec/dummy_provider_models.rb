@@ -6,6 +6,13 @@ class ClientApplication
     ClientApplication.new(key)
   end
 
+  def self.find(which, conditions_hash)
+    case conditions_hash[:conditions].keys.first
+    when :key
+      ClientApplication.new(conditions_hash[:conditions][:key])
+    end
+  end
+
   def initialize(key)
     @key = key
   end
@@ -21,18 +28,20 @@ end
 
 class OauthToken
   attr_accessor :token
+  attr_accessor :authorized_at
 
-  def self.first(conditions_hash)
-    case conditions_hash[:conditions].last
+  def self.find(which, conditions_hash)
+    case conditions_hash[:conditions][:token]
     when "not_authorized", "invalidated"
       nil
     else
-      OauthToken.new(conditions_hash[:conditions].last)
+      OauthToken.new(conditions_hash[:conditions][:token])
     end
   end
 
   def initialize(token)
     @token = token
+    @authorized_at = Time.now if token == 'valid_token'
   end
 
   def secret

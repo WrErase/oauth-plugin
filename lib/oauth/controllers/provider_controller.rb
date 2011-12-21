@@ -33,8 +33,8 @@ module OAuth
       end
 
       def token
-        @client_application = ClientApplication.find_by_key! params[:client_id]
-        if @client_application.secret != params[:client_secret]
+        @client_application = ClientApplication.find :first, :conditions => {:key => params[:client_id]}
+        if @client_application.nil? || @client_application.secret != params[:client_secret]
           oauth2_error "invalid_client"
           return
         end
@@ -54,21 +54,26 @@ module OAuth
 
       def authorize
         if params[:oauth_token]
-          @token = ::RequestToken.find_by_token! params[:oauth_token]
+          @token = ::RequestToken.find :first, :conditions => {:token => params[:oauth_token]}
           oauth1_authorize
         else
           if request.post?
             @authorizer = OAuth::Provider::Authorizer.new current_user, user_authorizes_token?, params
             redirect_to @authorizer.redirect_uri
           else
-            @client_application = ClientApplication.find_by_key! params[:client_id]
-            render :action => "oauth2_authorize"
+            @client_application = ClientApplication.find :first, :conditions => {:key => params[:client_id]}
+            if @client_application.nil?
+              oauth2_error "invalid_client"
+            else
+              render :action => "oauth2_authorize"
+            end
           end
         end
       end
 
       def revoke
-        @token = current_user.tokens.find_by_token! params[:token]
+        @token = current_user.tokens.find :first, :conditions => {:token => params[:token]}
+
         if @token
           @token.invalidate!
           flash[:notice] = "You've revoked the token for #{@token.client_application.name}"
@@ -132,7 +137,7 @@ module OAuth
 
       # http://tools.ietf.org/html/draft-ietf-oauth-v2-22#section-4.1.1
       def oauth2_token_authorization_code
-        @verification_code =  @client_application.oauth2_verifiers.find_by_token params[:code]
+        @verification_code =  @client_application.oauth2_verifiers.find :first, :conditions => {:token => params[:code]}
         unless @verification_code
           oauth2_error
           return

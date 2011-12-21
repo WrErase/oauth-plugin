@@ -12,7 +12,7 @@ module OAuth
       end
 
       def app
-        @app ||= ::ClientApplication.find_by_key!(params[:client_id])
+        @app ||= ::ClientApplication.find :first, :conditions => {:key => params[:client_id]}
       end
 
       def code
