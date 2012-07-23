@@ -1,4 +1,6 @@
 class OauthToken < ActiveRecord::Base
+  scope :authorized, where('invalidated_at IS NULL AND authorized_at IS NOT NULL and token = ?')
+
   belongs_to :client_application
   belongs_to :user
   validates_uniqueness_of :token

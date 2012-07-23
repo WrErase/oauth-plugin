@@ -2,6 +2,8 @@ class OauthToken
   include Mongoid::Document
   include Mongoid::Timestamps
 
+  scope :authorized, where(:invalidated_at.ne => nil, :authorized_at.ne => nil)
+
   field :token, :type => String
   field :secret, :type => String
   field :callback_url, :type => String
