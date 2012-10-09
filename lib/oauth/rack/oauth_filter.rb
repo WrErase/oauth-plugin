@@ -24,7 +24,7 @@ module OAuth
         env["oauth_plugin"] = true
         strategies = []
         if token_string = oauth2_token(request)
-          token = Oauth2Token.find :first, :conditions => {:token => token_string, :invalidated_at => nil}
+          token = Oauth2Token.where(token: token_string, invalidated_at: nil).first
           if token && !token.authorized_at.nil?
             env["oauth.token"]   = token
             env["oauth.version"] = 2
@@ -33,7 +33,7 @@ module OAuth
           end
 
         elsif oauth1_verify(request) do |request_proxy|
-            client_application = ClientApplication.find :first, :conditions => {:key => request_proxy.consumer_key}
+            client_application = ClientApplication.where(key: request_proxy.consumer_key).first
             env["oauth.client_application_candidate"] = client_application
 
             # Store this temporarily in client_application object for use in request token generation
@@ -41,7 +41,7 @@ module OAuth
             oauth_token = nil
 
             if request_proxy.token
-              oauth_token = client_application.tokens.authorized.find :first, :conditions => { :token => request_proxy.token }
+              oauth_token = client_application.tokens.authorized.where(token: request_proxy.token).first
               if oauth_token.respond_to?(:provided_oauth_verifier=)
                 oauth_token.provided_oauth_verifier = request_proxy.oauth_verifier
               end

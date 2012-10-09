@@ -9,7 +9,7 @@ module Oauth
       end
 
       def index
-        @consumer_tokens=ConsumerToken.all :conditions=>{:user_id=>current_user.id}
+        @consumer_tokens = ConsumerToken.where(user_id: current_user.id)
         # The services the user hasn't already connected to
         @services=OAUTH_CREDENTIALS.keys-@consumer_tokens.collect{|c| c.class.service_name}
       end      
@@ -137,7 +137,7 @@ module Oauth
         throw RecordNotFound unless OAUTH_CREDENTIALS.include?(consumer_key)
         deny_access! unless logged_in? || consumer_credentials[:allow_login]
         @consumer="#{consumer_key.to_s.camelcase}Token".constantize
-        @token=@consumer.find(:first, :conditions=>{:user_id=>current_user.id.to_s}) if logged_in?
+        @token = @consumer.where(user_id: current_user.id.to_s).first if logged_in?
       end
 
       # Override this in you controller to deny user or redirect to login screen.
